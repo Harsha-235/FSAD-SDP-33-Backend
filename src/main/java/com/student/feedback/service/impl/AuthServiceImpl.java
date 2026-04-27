@@ -43,9 +43,9 @@ public class AuthServiceImpl implements AuthService {
     // ================= ADMIN AUTO CREATE =================
     @PostConstruct
     public void createAdmin() {
-
-        if (userRepository.findByEmail("admin@university.edu").isEmpty()) {
-
+        java.util.Optional<User> adminOpt = userRepository.findByEmail("admin@university.edu");
+        
+        if (adminOpt.isEmpty()) {
             User admin = User.builder()
                     .name("Admin")
                     .email("admin@university.edu")
@@ -53,10 +53,14 @@ public class AuthServiceImpl implements AuthService {
                     .role("ADMIN")
                     .enabled(true)
                     .build();
-
             userRepository.save(admin);
-
             System.out.println("✅ Admin created successfully");
+        } else {
+            // Force reset the password just in case it was changed in the database
+            User admin = adminOpt.get();
+            admin.setPassword(passwordEncoder.encode("admin1234"));
+            userRepository.save(admin);
+            System.out.println("✅ Admin password forcefully reset to admin1234");
         }
     }
 
